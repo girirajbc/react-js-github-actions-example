@@ -1,0 +1,40 @@
+name: react-native-android-build-apk
+on:
+  push:
+    branches:
+      - "**"
+jobs:
+  buildAndTest:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Build
+        run: yarn build
+
+      - name: Send GitHub Action data to a Slack workflow
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          payload-delimiter: "_"
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+
+      - name: Send custom event details to a Slack workflow
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: |
+            status: "${{ job.status }}"
+            option: "false"
+
+      - name: Send a saved artifact to a Slack workflow
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          payload-file-path: "./artifacts.json"
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
